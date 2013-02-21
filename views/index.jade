@@ -1,0 +1,47 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+
+  form(action="/upload", method="post", enctype="multipart/form-data")
+    input(type="file", name="image")
+    input(type="submit", value="Upload Image")
+
+  - if (images && images.length)
+    h2 Standard
+
+    - images.forEach(function(image){
+      a(href=image.url)
+        img(src=cloudinary.url(image.public_id + '.' + image.format, { width: 100, height: 100, crop: 'fill', version: image.version }))
+    - })
+
+    h2 Special Effects
+
+    - images.forEach(function(image){
+      a(href=image.url)
+        img(src=cloudinary.url(image.public_id + '.' + image.format, { width: 100, height: 100, crop: 'fill', effect: 'vignette', version: image.version }))
+    - })
+
+  h2 jQuery Uploads
+
+  .preview
+
+  form(enctype="multipart/form-data")!=cloudinary.uploader.image_upload_tag('image')
+
+block scripts
+  script(type="text/javascript")
+    // Configure Cloudinary
+    $.cloudinary.config({ api_key: '!{api_key}', cloud_name: '!{cloud_name}' });
+
+    $('.cloudinary-fileupload').bind('fileuploadstart', function(e){
+      $('.preview').html('Upload started...');
+    });
+
+    // Upload finished
+    $('.cloudinary-fileupload').bind('cloudinarydone', function(e, data){
+      $('.preview').html(
+        $.cloudinary.image(data.result.public_id, { format: data.result.format, version: data.result.version, crop: 'scale', width: 100, height: 100 })
+      );
+      return true;
+    });
